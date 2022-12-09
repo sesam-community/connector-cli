@@ -41,12 +41,14 @@ def expand_connnector_config(connector_dir, system_placeholder):
 
         manifest = json.load(f)
 
-        # generate system config
-        system_template = system_env.get_template(manifest["system-template"])
         subst = {**{"system": system_placeholder},
                  **{key: "$ENV(%s)" % key for key in list(manifest.get("additional_parameters", {}).keys()) + BUILT_IN_PARAMETERS}}
 
-        output.extend(render(system_template, subst))
+        system_template = manifest.get("system-template")
+        if system_template:
+            # generate system config
+            template = system_env.get_template(manifest["system-template"])
+            output.extend(render(template, subst))
 
         for datatype, datatype_manifest in manifest.get("datatypes").items():
 
@@ -100,7 +102,7 @@ if __name__ == "__main__":
                     json.dump(component, f, indent=2, sort_keys=True)
     elif args.command == "collapse":
         # reconstruct the templates
-        input = Path(connector_dir)
+        input = Path(connector_dir, expanded_dir)
         datatypes = defaultdict(list)
         for system in Path(input, "systems").glob('*.json'):
             with open(system, "r") as f:
@@ -116,7 +118,7 @@ if __name__ == "__main__":
                     datatypes[datatype].append(pipe)
 
         dirpath = Path(connector_dir)
-        os.makedirs(dirpath / "templates")
+        os.makedirs(dirpath / "templates", exist_ok=True)
 
         # write the datatype templates
         env_parameters = set()
@@ -141,7 +143,7 @@ if __name__ == "__main__":
 
         with open(dirpath / "manifest.json", "w") as f:
             new_manifest = {
-                "additional_parameters": {key:existing_manifest.get("additional_parameters", {}).get(key, {}) for key in env_parameters},
+                "additional_parameters": {key:existing_manifest.get("additional_parameters", {}).get(key, {}) for key in env_parameters if key not in BUILT_IN_PARAMETERS},
                 "system-template": "templates/system.json",
                 "datatypes": {datatype: {**{"template": "templates/%s.json" % datatype}, **existing_manifest.get(datatype, {})} for datatype in datatypes.keys() if datatype != "system"}
             }

@@ -23,7 +23,7 @@ $ sesampy upload
 ```
 
 ## Development
-Do your work with Managament Studio and your dev node, e.g. add a system and add company and contact pipes.
+Do your work with Management Studio and your dev node, e.g. add a system and add company and contact pipes.
 
 ## Download and collapse
 ```commandline

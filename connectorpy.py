@@ -24,7 +24,7 @@ def expand_connnector_config(connector_dir, system_placeholder):
     output = []
 
     main_env = Environment(
-        loader=PackageLoader("connector-py"),
+        loader=PackageLoader("connectorpy"),
         autoescape=select_autoescape(),
         variable_start_string="{{@",
         variable_end_string="@}}"

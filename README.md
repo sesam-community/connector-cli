@@ -6,14 +6,14 @@ This tool is a companion tool to sesampy.
 ```commandline
 $ mkdir hubspot-connector
 $ cd hubspot-connector
-$ connector-cli init
+$ connector-py init
 $ ls
 manifest.json
 ```
 
 ## Expand and upload
 ```commandline
-$ connector-cli expand
+$ connector-py expand
 $ cd .expanded
 $ ls
 test-env.json
@@ -29,7 +29,7 @@ Do your work with Management Studio and your dev node, e.g. add a system and add
 ```commandline
 $ sesam-py download
 $ cd ..
-$ connector-cli collapse
+$ connector-py collapse
 $ ls
 manifest.json
 templates

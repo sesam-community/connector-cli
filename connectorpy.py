@@ -9,7 +9,6 @@ from collections import defaultdict
 
 from jinja2 import Environment, PackageLoader, select_autoescape, FileSystemLoader
 
-BUILT_IN_PARAMETERS = ["token_url"]
 
 def render(template, props, wrap=True):
     config = json.loads(template.render(** props))
@@ -19,6 +18,13 @@ def render(template, props, wrap=True):
         # template is a single component, wrap it a list to make it consistent
         return [config]
 
+node_metadata = {
+  "_id": "node",
+  "type": "metadata",
+  "task_manager": {
+    "disable_user_pipes": True
+  }
+}
 
 def expand_connnector_config(connector_dir, system_placeholder):
     output = []
@@ -42,7 +48,7 @@ def expand_connnector_config(connector_dir, system_placeholder):
         manifest = json.load(f)
 
         subst = {**{"system": system_placeholder},
-                 **{key: "$ENV(%s)" % key for key in list(manifest.get("additional_parameters", {}).keys()) + BUILT_IN_PARAMETERS}}
+                 **{key: "$ENV(%s)" % key for key in list(manifest.get("additional_parameters", {}).keys())}}
 
         system_template = manifest.get("system-template")
         if system_template:
@@ -90,8 +96,10 @@ if __name__ == "__main__":
         os.makedirs(dirpath)
         os.makedirs(dirpath / "pipes")
         os.makedirs(dirpath / "systems")
+        with open(dirpath / "node-metadata.conf.json", "w") as f:
+            json.dump(node_metadata, f, indent=2, sort_keys=True)
         with open(dirpath / "test-env.json", "w") as f:
-            new_manifest = {**{"node-env": "test"}, **{key:"" for key in list(manifest.get("additional_parameters", {}).keys()) + BUILT_IN_PARAMETERS}}
+            new_manifest = {**{"node-env": "test"}, **{key:"" for key in list(manifest.get("additional_parameters", {}).keys())}}
             json.dump(new_manifest, f, indent=2, sort_keys=True)
         for component in output:
             if component["type"] == "pipe":
@@ -143,7 +151,7 @@ if __name__ == "__main__":
 
         with open(dirpath / "manifest.json", "w") as f:
             new_manifest = {
-                "additional_parameters": {key:existing_manifest.get("additional_parameters", {}).get(key, {}) for key in env_parameters if key not in BUILT_IN_PARAMETERS},
+                "additional_parameters": {key:existing_manifest.get("additional_parameters", {}).get(key, {}) for key in env_parameters},
                 "system-template": "templates/system.json",
                 "datatypes": {datatype: {**{"template": "templates/%s.json" % datatype}, **existing_manifest.get(datatype, {})} for datatype in datatypes.keys() if datatype != "system"}
             }

@@ -26,7 +26,7 @@ $ sesampy upload
 Do your work with Management Studio and your dev node, e.g. add a system and add company and contact pipes.
 
 
-## OAuth2 setup
+### OAuth2 setup
 If the system is using oauth2, you can use the following tool to add secrets to the system. The tool expects a system with the following secrets and environment variables:
 ```
 {

@@ -22,7 +22,41 @@ systems
 $ sesampy upload
 ```
 
+## Development
+Do your work with Management Studio and your dev node, e.g. add a system and add company and contact pipes.
+
+
 ## OAuth2 setup
+If the system is using oauth2, you can use the following tool to add secrets to the system. The tool expects a system with the following secrets and environment variables:
+```
+{
+  "_id": "{{@ system @}}",
+  "type": "system:[..]",
+  [..]
+  "oauth2": {
+    "access_token": "$SECRET(oauth_access_token)",
+    "client_id": "$SECRET(oauth_client_id)",
+    "client_secret": "$SECRET(oauth_client_secret)",
+    "refresh_token": "$SECRET(oauth_refresh_token)",
+    "token_url": {{@ token_url @}}
+  }
+  [..]
+}
+```
+The connector manifest also need to include the following re-usable oauth2 properties:
+```
+{
+  [..]
+  "auth": "oauth2",
+  "oauth2": {
+    "scopes": ["account:*", "business:*", "customer:*", "invoice:*", "product:*", "sales_tax:*", "transaction:*", "user:*", "vendor:*"],
+    "token_url": "https://api.waveapps.com/oauth2/token/",
+    "login_url": "https://api.waveapps.com/oauth2/authorize/"
+  }
+  [..]
+}
+```
+This is how the tool is used:
 ```commandline
 $ oauthlogin.py --client_secret ZziobpmZ0DWC[..] --client_id gZLMgMG1[..] --service_url https://datahub-a6a45974.sesam.cloud/api --service_jwt eyJ0eXAiOiJKV1QiLCJhb[..]]
 
@@ -45,9 +79,6 @@ Updated secret: oauth_client_id
 Updated secret: oauth_client_secret
 Updated environment variables
 ```
-
-## Development
-Do your work with Management Studio and your dev node, e.g. add a system and add company and contact pipes.
 
 ## Download and collapse
 ```commandline

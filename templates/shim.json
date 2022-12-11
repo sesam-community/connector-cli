@@ -3,6 +3,7 @@
   "type": "pipe",
   "source": {
     "type": "dataset",
-    "dataset": "{{@ system @}}-{{@ datatype @}}-collect"
+    "dataset": "{{@ system @}}-{{@ datatype @}}-collect",
+    "supports_signalling": false
   }
 }

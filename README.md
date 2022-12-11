@@ -17,6 +17,7 @@ $ connectorpy expand
 $ cd .expanded
 $ ls
 test-env.json
+node-metadata.conf.json
 pipes
 systems
 $ sesampy upload

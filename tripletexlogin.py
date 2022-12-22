@@ -49,7 +49,7 @@ if __name__ == "__main__":
         data = resp.json()
 
         secrets = {
-            "token": data["value"]["token"],
+            "jwt": data["value"]["token"],
         }
         # post secrets
         for secret, value in secrets.items():

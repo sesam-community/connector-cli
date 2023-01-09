@@ -95,3 +95,21 @@ company.json
 contact.json
 system.json
 ```
+
+## Re-using templates across datatypes
+You can re-use templates across datatypes by referring to the same template in multiple datatypes. In order to do development, only the datatype that has a template that matches the name of the datatype is used during collapse. The other datatypes are silently ignored.
+
+```commandline
+$ cat manifest.json 
+{
+  "datatypes": {
+    "customer": {
+      "template": "templates/customer.json" # the customer datatype is used during collapse
+    },
+    "product": {
+      "template": "templates/customer.json" # the product datatype is ignored during collapse
+    }
+  },
+  "system-template": "templates/system.json"
+}
+```

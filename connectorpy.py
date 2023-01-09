@@ -57,15 +57,15 @@ def expand_connnector_config(connector_dir, system_placeholder):
             output.extend(render(template, subst))
 
         for datatype, datatype_manifest in manifest.get("datatypes").items():
-
-            datatype_template = system_env.get_template(datatype_manifest["template"])
-            datatype_pipes = render(datatype_template, subst)
-            # # tag component with datatype we can group them when we download
-            # for pipe in datatype_pipes:
-            #     metadata = pipe.get("metadata", {})
-            #     metadata["$connector"] = {"datatype": datatype}
-            #     pipe["metadata"] = metadata
-            # datatype_output.extend(datatype_pipes)
+            template = datatype_manifest["template"]
+            template_name = os.path.splitext(os.path.basename(template))[0]
+            datatype_template = system_env.get_template(template)
+            datatype_pipes = render(datatype_template, {**subst, **{"datatype": datatype}})
+            if template_name != datatype:
+                for pipe in datatype_pipes:
+                    pipe["comment"] = "WARNING! This pipe is generated from the template of the '%s' datatype and " \
+                                      "changes will be silently ignored during collapse. " \
+                                      "For more information see the connectorpy README." % template_name
             output.extend(datatype_pipes)
             output.extend(render(shim_template, {"system": system_placeholder, "datatype": datatype}))
     return output, manifest
@@ -111,10 +111,10 @@ if __name__ == "__main__":
     elif args.command == "collapse":
         # reconstruct the templates
         input = Path(connector_dir, expanded_dir)
-        datatypes = defaultdict(list)
+        templates = defaultdict(list)
         for system in Path(input, "systems").glob('*.json'):
             with open(system, "r") as f:
-                datatypes["system"].append(json.load(f))
+                templates["system"].append(json.load(f))
         for pipe in Path(input, "pipes").glob('*.json'):
             datatype = pipe.name.split("-")[1]
             if pipe.name.endswith("-transform.json"): # shim pipe
@@ -123,39 +123,53 @@ if __name__ == "__main__":
                 pipe = json.load(f)
                 # skip shim
                 if not pipe["_id"] == "%s-%s-transform" % (system_placeholder, datatype):
-                    datatypes[datatype].append(pipe)
+                    templates[datatype].append(pipe)
 
         dirpath = Path(connector_dir)
         os.makedirs(dirpath / "templates", exist_ok=True)
 
-        # write the datatype templates
-        env_parameters = set()
-        p = re.compile('\$ENV\(\w+\)')
-        for datatype, new_manifest in datatypes.items():
-            with open(Path(dirpath, "templates", "%s.json" % datatype), "w") as f:
-                template = json.dumps(new_manifest if len(new_manifest) > 1 else new_manifest[0], indent=4, sort_keys=True)
-                fixed = template.replace(system_placeholder, "{{@ system @}}")
-                envs = p.findall(fixed)
-                for env in envs:
-                    e = env.replace("$ENV(", "{{@ ").replace(")", " @}}")
-                    env_parameters.add(e.replace("{{@ ", "").replace(" @}}", ""))
-                    fixed = fixed.replace(env, e)
-                f.write(fixed)
-
-        # create manifest
+        # read manifest
         manifest_path = Path(connector_dir, "manifest.json")
         existing_manifest = {}
         if manifest_path.exists():
             with open(manifest_path, "r") as f:
                 existing_manifest = json.load(f)
 
+        # ignore templates that doesn't match the name of the datatype (re-used templates)
+        datatypes_with_no_master_template = set()
+        for datatype, datatype_manifest in existing_manifest.get("datatypes", {}).items():
+            template = datatype_manifest["template"]
+            template_name = os.path.splitext(os.path.basename(template))[0]
+            if template_name != datatype:
+                datatypes_with_no_master_template.add(datatype)
+
+        # write the datatype templates
+        env_parameters = set()
+        p = re.compile('\$ENV\(\w+\)')
+        for template_name, components in templates.items():
+            if template_name in datatypes_with_no_master_template:
+                continue
+            template = json.dumps(components if len(components) > 1 else components[0], indent=2, sort_keys=True)
+            fixed = template.replace(system_placeholder, "{{@ system @}}")
+            envs = p.findall(fixed)
+            for env in envs:
+                e = env.replace("$ENV(", "{{@ ").replace(")", " @}}")
+                env_parameters.add(e.replace("{{@ ", "").replace(" @}}", ""))
+                fixed = fixed.replace(env, e)
+                if template_name != "system":
+                    fixed = fixed.replace(template_name, "{{@ datatype @}}")
+            with open(Path(dirpath, "templates", "%s.json" % template_name), "w") as f:
+                f.write(fixed)
+
+        # create manifest
+        datatypes = list(templates.keys()) + list(datatypes_with_no_master_template)
+        new_manifest = {
+            "additional_parameters": {key:existing_manifest.get("additional_parameters", {}).get(key, {}) for key in env_parameters},
+            "system-template": "templates/system.json",
+            "datatypes": {datatype: {**{"template": "templates/%s.json" % datatype}, **existing_manifest.get("datatypes", {}).get(datatype, {})} for datatype in datatypes if datatype != "system"}
+        }
+        manifest = {**existing_manifest, **new_manifest}
         with open(dirpath / "manifest.json", "w") as f:
-            new_manifest = {
-                "additional_parameters": {key:existing_manifest.get("additional_parameters", {}).get(key, {}) for key in env_parameters},
-                "system-template": "templates/system.json",
-                "datatypes": {datatype: {**{"template": "templates/%s.json" % datatype}, **existing_manifest.get(datatype, {})} for datatype in datatypes.keys() if datatype != "system"}
-            }
-            manifest = {**existing_manifest, **new_manifest}
             json.dump(manifest, f, indent=2, sort_keys=True)
     elif args.command == "init":
         with open(Path(connector_dir, "manifest.json"), "w") as f:

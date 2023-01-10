@@ -96,8 +96,8 @@ contact.json
 system.json
 ```
 
-## Re-using templates across datatypes
-You can re-use templates across datatypes by referring to the same template in multiple datatypes. In order to do development, only the datatype that has a template that matches the name of the datatype is used during collapse. The other datatypes are silently ignored.
+## Re-use templates across datatypes
+You can re-use templates across datatypes by using the same template on multiple datatypes. In order to do development, only the datatype that has a template that matches the name of the datatype is used during collapse. The other datatypes are silently ignored.
 
 ```commandline
 $ cat manifest.json 
@@ -112,4 +112,14 @@ $ cat manifest.json
   },
   "system-template": "templates/system.json"
 }
+```
+
+To reflect changes from the datatype used during collapse onto the other datatypes in your development environment one currently has to perform the following steps:
+```commandline
+$ sesampy download
+$ cd ..
+$ connectorpy collapse
+$ connectorpy expand
+$ cd .expanded
+$ sesampy upload
 ```

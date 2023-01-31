@@ -33,7 +33,9 @@ def expand_connnector_config(connector_dir, system_placeholder):
         loader=PackageLoader("connectorpy"),
         autoescape=select_autoescape(),
         variable_start_string="{{@",
-        variable_end_string="@}}"
+        variable_end_string="@}}",
+        block_start_string="{{%",
+        block_end_string="%}}",
     )
     shim_template = main_env.get_template("shim.json")
 
@@ -42,7 +44,9 @@ def expand_connnector_config(connector_dir, system_placeholder):
             loader=FileSystemLoader(connector_dir),
             autoescape=select_autoescape(),
             variable_start_string="{{@",
-            variable_end_string="@}}"
+            variable_end_string="@}}",
+            block_start_string="{{%",
+            block_end_string="%}}",
         )
 
         manifest = json.load(f)

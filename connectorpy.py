@@ -48,7 +48,8 @@ def expand_connnector_config(connector_dir, system_placeholder):
         manifest = json.load(f)
 
         subst = {**{"system": system_placeholder},
-                 **{key: "$ENV(%s)" % key for key in list(manifest.get("additional_parameters", {}).keys())}}
+                 **{key: "$ENV(%s)" % key for key in list(manifest.get("additional_parameters", {}).keys())},
+                 **{key: "$ENV(%s)" % key for key in list(manifest.get("oauth2", {}).keys())}}
 
         system_template = manifest.get("system-template")
         if system_template:

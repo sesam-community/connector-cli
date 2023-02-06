@@ -3,6 +3,7 @@
 This tool is a companion tool to sesampy.
 
 ## Init
+
 ```commandline
 $ mkdir hubspot-connector
 $ cd hubspot-connector
@@ -12,6 +13,7 @@ manifest.json
 ```
 
 ## Expand and upload
+
 ```commandline
 $ connectorpy expand
 $ cd .expanded
@@ -24,11 +26,13 @@ $ sesampy upload
 ```
 
 ## Development
+
 Do your work with Management Studio and your dev node, e.g. add a system and add company and contact pipes.
 
-
 ### OAuth2 setup
+
 If the system is using oauth2, you can use the following tool to add secrets to the system. The tool expects a system with the following secrets and environment variables:
+
 ```
 {
   "_id": "{{@ system @}}",
@@ -44,7 +48,9 @@ If the system is using oauth2, you can use the following tool to add secrets to 
   [..]
 }
 ```
+
 The connector manifest also need to include the following re-usable oauth2 properties:
+
 ```
 {
   [..]
@@ -57,7 +63,9 @@ The connector manifest also need to include the following re-usable oauth2 prope
   [..]
 }
 ```
+
 This is how the tool is used:
+
 ```commandline
 $ oauthlogin.py --client_secret ZziobpmZ0DWC[..] --client_id gZLMgMG1[..] --service_url https://datahub-a6a45974.sesam.cloud/api --service_jwt eyJ0eXAiOiJKV1QiLCJhb[..]]
 
@@ -82,6 +90,7 @@ Updated environment variables
 ```
 
 ## Download and collapse
+
 ```commandline
 $ sesampy download
 $ cd ..
@@ -97,6 +106,7 @@ system.json
 ```
 
 ## Re-use templates across datatypes
+
 You can re-use templates across datatypes by using the same template on multiple datatypes. In order to do development, only the datatype that has a template that matches the name of the datatype is used during collapse. The other datatypes are silently ignored.
 
 ```commandline
@@ -115,11 +125,22 @@ $ cat manifest.json
 ```
 
 To reflect changes from the datatype used during collapse onto the other datatypes in your development environment one currently has to perform the following steps:
+
 ```commandline
-$ sesampy download
-$ cd ..
-$ connectorpy collapse
-$ connectorpy expand
-$ cd .expanded
-$ sesampy upload
+sesampy download
+cd ..
+connectorpy collapse
+connectorpy expand
+cd .expanded
+sesampy upload
 ```
+
+## Setting up Webhooks
+
+To enable webhooks you must ensure that the service_url environment variable is set in your metadata config of your subscription. The service_url should look like so:
+
+``https://<your_datahub_id>.sesam.cloud/api``
+
+To register your webhooks make sure to run the webhook register pipes for each of your defined datatypes that support webhooks.
+
+Verify in the execution log for each of your webhooks pipes that the pipe succeded in registering the webhooks.

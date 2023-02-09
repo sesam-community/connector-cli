@@ -143,4 +143,4 @@ To enable webhooks you must ensure that the service_url environment variable is 
 
 To register your webhooks make sure to run the webhook register pipes for each of your defined datatypes that support webhooks.
 
-Verify in the execution log for each of your webhooks pipes that the pipe succeded in registering the webhooks.
+Verify in the execution log for each of your webhooks pipes that the pipe succeeded in registering the webhooks.

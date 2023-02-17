@@ -157,8 +157,8 @@ if __name__ == "__main__":
                 e = env.replace("$ENV(", "{{@ ").replace(")", " @}}")
                 env_parameters.add(e.replace("{{@ ", "").replace(" @}}", ""))
                 fixed = fixed.replace(env, e)
-                if template_name != "system":
-                    fixed = fixed.replace(template_name, "{{@ datatype @}}")
+            if template_name != "system":
+                fixed = fixed.replace(template_name, "{{@ datatype @}}")
             with open(Path(dirpath, "templates", "%s.json" % template_name), "w") as f:
                 f.write(fixed)
 
